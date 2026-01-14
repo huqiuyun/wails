@@ -14,6 +14,7 @@ import (
 type Project struct {
 	/*** Application Data ***/
 	Name           string `json:"name"`
+	GoPackPath     string `json:"go:package:path"`
 	AssetDirectory string `json:"assetdir,omitempty"`
 
 	ReloadDirectories string `json:"reloaddirs,omitempty"`
@@ -44,6 +45,12 @@ type Project struct {
 
 	// BuildTags Extra tags to process during build
 	BuildTags string `json:"build:tags"`
+
+	// 输出 dist, default= 'bin' : {buildDir}/bin
+	BuildDist string `json:"build:dist"`
+
+	// 输出目录
+	OutputDir string `json:"output:dir"`
 
 	// The output filename
 	OutputFilename string `json:"outputfilename"`
@@ -102,6 +109,13 @@ type Project struct {
 	Bindings Bindings `json:"bindings"`
 }
 
+func (p *Project) GetDir(dir string) string {
+	if filepath.IsAbs(dir) {
+		return dir
+	}
+	return filepath.Join(p.Path, dir)
+}
+
 func (p *Project) GetFrontendDir() string {
 	if filepath.IsAbs(p.FrontendDir) {
 		return p.FrontendDir
@@ -121,6 +135,13 @@ func (p *Project) GetBuildDir() string {
 		return p.BuildDir
 	}
 	return filepath.Join(p.Path, p.BuildDir)
+}
+
+func (p *Project) GetOutputDir() string {
+	if filepath.IsAbs(p.OutputDir) {
+		return p.OutputDir
+	}
+	return filepath.Join(p.Path, p.OutputDir)
 }
 
 func (p *Project) GetDevBuildCommand() string {
@@ -174,6 +195,12 @@ func (p *Project) setDefaults() {
 	}
 	if p.BuildDir == "" {
 		p.BuildDir = "build"
+	}
+	if p.OutputDir == "" {
+		p.OutputDir = p.BuildDir
+	}
+	if p.BuildDist == "" {
+		p.BuildDist = "bin"
 	}
 	if p.DebounceMS == 0 {
 		p.DebounceMS = 100
@@ -247,7 +274,11 @@ type Protocol struct {
 }
 
 type Bindings struct {
-	TsGeneration TsGeneration `json:"ts_generation"`
+	TsGeneration     TsGeneration `json:"ts_generation"`
+	GoPackPath       string       `json:"go:package:path"`
+	ProjectDirectory string       `json:"project:dir"`
+	BinaryDirectory  string       `json:"bin:dir"`
+	BinRunArgs       []string     `json:"bin:run:args"`
 }
 
 type TsGeneration struct {

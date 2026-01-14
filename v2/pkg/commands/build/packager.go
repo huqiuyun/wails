@@ -43,18 +43,18 @@ func packageProject(options *Options, platform string) error {
 
 // cleanBinDirectory will remove an existing bin directory and recreate it
 func cleanBinDirectory(options *Options) error {
-	buildDirectory := options.BinDirectory
+	directory := options.PackageBinDirectory
 
 	// Clear out old builds
-	if fs.DirExists(buildDirectory) {
-		err := os.RemoveAll(buildDirectory)
+	if fs.DirExists(directory) {
+		err := os.RemoveAll(directory)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Create clean directory
-	err := os.MkdirAll(buildDirectory, 0o700)
+	err := os.MkdirAll(directory, 0o700)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func packageApplicationForDarwin(options *Options) error {
 		bundlename = options.ProjectData.Name + ".app"
 	}
 
-	contentsDirectory := filepath.Join(options.BinDirectory, bundlename, "/Contents")
+	contentsDirectory := filepath.Join(options.PackageBinDirectory, bundlename, "/Contents")
 	exeDir := filepath.Join(contentsDirectory, "/MacOS")
 	err = fs.MkDirs(exeDir, 0o755)
 	if err != nil {
@@ -83,10 +83,10 @@ func packageApplicationForDarwin(options *Options) error {
 		return err
 	}
 	// Copy binary
-	packedBinaryPath := filepath.Join(exeDir, options.ProjectData.OutputFilename)
-	err = fs.MoveFile(options.CompiledBinary, packedBinaryPath)
+	packedBinary := filepath.Join(exeDir, filepath.Base(options.CompiledBinary))
+	err = fs.CopyFile(options.CompiledBinary, packedBinary)
 	if err != nil {
-		return errors.Wrap(err, "Cannot move file: "+options.CompiledBinary)
+		return errors.Wrap(err, "Cannot move file: "+options.ProjectData.OutputFilename)
 	}
 
 	// Generate Info.plist
@@ -109,7 +109,7 @@ func packageApplicationForDarwin(options *Options) error {
 		}
 	}
 
-	options.CompiledBinary = packedBinaryPath
+	options.CompiledBinary = packedBinary
 
 	return nil
 }

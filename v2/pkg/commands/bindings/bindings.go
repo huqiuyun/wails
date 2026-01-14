@@ -9,15 +9,19 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/wailsapp/wails/v2/internal/colour"
+	"github.com/wailsapp/wails/v2/internal/fs"
 	"github.com/wailsapp/wails/v2/internal/shell"
 	"github.com/wailsapp/wails/v2/pkg/commands/buildtags"
 )
 
 // Options for generating bindings
 type Options struct {
-	Filename         string
 	Tags             []string
+	BinRunArgs       []string
+	Filename         string
+	BinaryDirectory  string // wailsbindings to
 	ProjectDirectory string
+	GoPackPath       string
 	Compiler         string
 	GoModTidy        bool
 	TsPrefix         string
@@ -34,10 +38,14 @@ func GenerateBindings(options Options) (string, error) {
 	}
 
 	// go build -tags bindings -o bindings.exe
-	tempDir := os.TempDir()
-	filename = filepath.Join(tempDir, filename)
+	if !fs.DirExists(options.BinaryDirectory) {
+		options.BinaryDirectory = os.TempDir()
+	}
+	filename = filepath.Join(options.BinaryDirectory, filename)
 
 	workingDirectory, _ := lo.Coalesce(options.ProjectDirectory, lo.Must(os.Getwd()))
+
+	fmt.Printf("generate binding filename: '%s',working directory: '%s'\n", filename, workingDirectory)
 
 	var stdout, stderr string
 	var err error
@@ -60,7 +68,12 @@ func GenerateBindings(options Options) (string, error) {
 	// So, use the default C compiler, not the one set for cross compiling.
 	envBuild = shell.RemoveEnv(envBuild, "CC")
 
-	stdout, stderr, err = shell.RunCommandWithEnv(envBuild, workingDirectory, options.Compiler, "build", "-buildvcs=false", "-tags", tagString, "-o", filename)
+	var args []string
+	args = append(args, "build", "-buildvcs=false", "-tags", tagString, "-o", filename)
+	if len(options.GoPackPath) > 0 {
+		args = append(args, options.GoPackPath)
+	}
+	stdout, stderr, err = shell.RunCommandWithEnv(envBuild, workingDirectory, options.Compiler, args...)
 	if err != nil {
 		return stdout, fmt.Errorf("%s\n%s\n%s", stdout, stderr, err)
 	}
@@ -84,7 +97,7 @@ func GenerateBindings(options Options) (string, error) {
 	env = shell.SetEnv(env, "tssuffix", options.TsSuffix)
 	env = shell.SetEnv(env, "tsoutputtype", options.TsOutputType)
 
-	stdout, stderr, err = shell.RunCommandWithEnv(env, workingDirectory, filename)
+	stdout, stderr, err = shell.RunCommandWithEnv(env, workingDirectory, filename, options.BinRunArgs...)
 	if err != nil {
 		return stdout, fmt.Errorf("%s\n%s\n%s", stdout, stderr, err)
 	}

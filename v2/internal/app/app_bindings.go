@@ -82,9 +82,7 @@ func CreateApp(appoptions *options.App) (*App, error) {
 		logger:  myLogger,
 		options: appoptions,
 	}
-
 	return result, nil
-
 }
 
 func generateBindings(bindings *binding.Bindings) error {

@@ -119,6 +119,13 @@ func commandPrettifier(args []string) string {
 	return strings.Join(args, " ")
 }
 
+func (b *BaseBuilder) GoPackPath(options *Options) string {
+	if options.Compiler != "go" {
+		return ""
+	}
+	return options.ProjectData.GoPackPath
+}
+
 func (b *BaseBuilder) OutputFilename(options *Options) string {
 	outputFile := options.OutputFile
 	if outputFile == "" {
@@ -266,7 +273,6 @@ func (b *BaseBuilder) CompileProject(options *Options) error {
 	}
 
 	// Get application build directory
-	appDir := options.BinDirectory
 	if options.CleanBinDirectory {
 		err = cleanBinDirectory(options)
 		if err != nil {
@@ -276,11 +282,16 @@ func (b *BaseBuilder) CompileProject(options *Options) error {
 
 	// Set up output filename
 	outputFile := b.OutputFilename(options)
-	compiledBinary := filepath.Join(appDir, outputFile)
+	compiledBinary := filepath.Join(options.BinDirectory, outputFile)
 	commands.Add("-o")
 	commands.Add(compiledBinary)
 
 	options.CompiledBinary = compiledBinary
+
+	goPackPath := b.GoPackPath(options)
+	if len(goPackPath) > 0 {
+		commands.Add(goPackPath)
+	}
 
 	// Build the application
 	cmd := exec.Command(compiler, commands.AsSlice()...)
@@ -366,7 +377,7 @@ func (b *BaseBuilder) CompileProject(options *Options) error {
 	})
 
 	if verbose {
-		printBulletPoint("Environment:", strings.Join(cmd.Env, " "))
+		printBulletPoint("Environment: (%s) ", strings.Join(cmd.Env, " "))
 	}
 
 	// Run command

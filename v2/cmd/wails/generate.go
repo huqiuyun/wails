@@ -47,12 +47,25 @@ func generateModule(f *flags.GenerateModule) error {
 		projectConfig.Bindings.TsGeneration.OutputType = "classes"
 	}
 
+	if projectConfig.Bindings.GoPackPath == "" {
+		projectConfig.Bindings.GoPackPath = projectConfig.GoPackPath
+	}
+	if projectConfig.Bindings.ProjectDirectory == "" {
+		projectConfig.Bindings.ProjectDirectory = projectConfig.Path
+	}
+	if projectConfig.Bindings.BinaryDirectory == "" {
+		projectConfig.Bindings.BinaryDirectory = filepath.Join(projectConfig.GetOutputDir(), "bin")
+	}
 	_, err = bindings.GenerateBindings(bindings.Options{
-		Compiler:     f.Compiler,
-		Tags:         buildTags,
-		TsPrefix:     projectConfig.Bindings.TsGeneration.Prefix,
-		TsSuffix:     projectConfig.Bindings.TsGeneration.Suffix,
-		TsOutputType: projectConfig.Bindings.TsGeneration.OutputType,
+		Compiler:         f.Compiler,
+		Tags:             buildTags,
+		BinRunArgs:       projectConfig.Bindings.BinRunArgs,
+		GoPackPath:       projectConfig.Bindings.GoPackPath,
+		BinaryDirectory:  projectConfig.GetDir(projectConfig.Bindings.BinaryDirectory),
+		ProjectDirectory: projectConfig.GetDir(projectConfig.Bindings.ProjectDirectory),
+		TsPrefix:         projectConfig.Bindings.TsGeneration.Prefix,
+		TsSuffix:         projectConfig.Bindings.TsGeneration.Suffix,
+		TsOutputType:     projectConfig.Bindings.TsGeneration.OutputType,
 	})
 	if err != nil {
 		return err

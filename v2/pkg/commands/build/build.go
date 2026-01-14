@@ -36,40 +36,41 @@ const (
 
 // Options contains all the build options as well as the project data
 type Options struct {
-	LDFlags           string               // Optional flags to pass to linker
-	UserTags          []string             // Tags to pass to the Go compiler
-	Logger            *clilogger.CLILogger // All output to the logger
-	OutputType        string               // EG: desktop, server....
-	Mode              Mode                 // release or dev
-	Devtools          bool                 // Enable devtools in production
-	ProjectData       *project.Project     // The project data
-	Pack              bool                 // Create a package for the app after building
-	Platform          string               // The platform to build for
-	Arch              string               // The architecture to build for
-	Compiler          string               // The compiler command to use
-	SkipModTidy       bool                 //  Skip mod tidy before compile
-	IgnoreFrontend    bool                 // Indicates if the frontend does not need building
-	IgnoreApplication bool                 // Indicates if the application does not need building
-	OutputFile        string               // Override the output filename
-	BinDirectory      string               // Directory to use to write the built applications
-	CleanBinDirectory bool                 // Indicates if the bin output directory should be cleaned before building
-	CompiledBinary    string               // Fully qualified path to the compiled binary
-	KeepAssets        bool                 // Keep the generated assets/files
-	Verbosity         int                  // Verbosity level (0 - silent, 1 - default, 2 - verbose)
-	Compress          bool                 // Compress the final binary
-	CompressFlags     string               // Flags to pass to UPX
-	WebView2Strategy  string               // WebView2 installer strategy
-	RunDelve          bool                 // Indicates if we should run delve after the build
-	WailsJSDir        string               // Directory to generate the wailsjs module
-	ForceBuild        bool                 // Force
-	BundleName        string               // Bundlename for Mac
-	TrimPath          bool                 // Use Go's trimpath compiler flag
-	RaceDetector      bool                 // Build with Go's race detector
-	WindowsConsole    bool                 // Indicates that the windows console should be kept
-	Obfuscated        bool                 // Indicates that bound methods should be obfuscated
-	GarbleArgs        string               // The arguments for Garble
-	SkipBindings      bool                 // Skip binding generation
-	SkipEmbedCreate   bool                 // Skip creation of embed files
+	LDFlags             string               // Optional flags to pass to linker
+	UserTags            []string             // Tags to pass to the Go compiler
+	Logger              *clilogger.CLILogger // All output to the logger
+	OutputType          string               // EG: desktop, server....
+	Mode                Mode                 // release or dev
+	Devtools            bool                 // Enable devtools in production
+	ProjectData         *project.Project     // The project data
+	Pack                bool                 // Create a package for the app after building
+	Platform            string               // The platform to build for
+	Arch                string               // The architecture to build for
+	Compiler            string               // The compiler command to use
+	SkipModTidy         bool                 //  Skip mod tidy before compile
+	IgnoreFrontend      bool                 // Indicates if the frontend does not need building
+	IgnoreApplication   bool                 // Indicates if the application does not need building
+	OutputFile          string               // Override the output filename
+	PackageBinDirectory string               // 打包输出目录
+	BinDirectory        string               // Directory to use to write the built applications
+	CleanBinDirectory   bool                 // Indicates if the bin output directory should be cleaned before building
+	CompiledBinary      string               // Fully qualified path to the compiled binary
+	KeepAssets          bool                 // Keep the generated assets/files
+	Verbosity           int                  // Verbosity level (0 - silent, 1 - default, 2 - verbose)
+	Compress            bool                 // Compress the final binary
+	CompressFlags       string               // Flags to pass to UPX
+	WebView2Strategy    string               // WebView2 installer strategy
+	RunDelve            bool                 // Indicates if we should run delve after the build
+	WailsJSDir          string               // Directory to generate the wailsjs module
+	ForceBuild          bool                 // Force
+	BundleName          string               // Bundlename for Mac
+	TrimPath            bool                 // Use Go's trimpath compiler flag
+	RaceDetector        bool                 // Build with Go's race detector
+	WindowsConsole      bool                 // Indicates that the windows console should be kept
+	Obfuscated          bool                 // Indicates that bound methods should be obfuscated
+	GarbleArgs          string               // The arguments for Garble
+	SkipBindings        bool                 // Skip binding generation
+	SkipEmbedCreate     bool                 // Skip creation of embed files
 }
 
 // Build the project!
@@ -87,7 +88,9 @@ func Build(options *Options) (string, error) {
 	options.WailsJSDir = options.ProjectData.GetWailsJSDir()
 
 	// Set build directory
-	options.BinDirectory = filepath.Join(options.ProjectData.GetBuildDir(), "bin")
+	options.BinDirectory = filepath.Join(options.ProjectData.GetOutputDir(), "bin")
+
+	options.PackageBinDirectory = filepath.Join(options.ProjectData.GetBuildDir(), options.ProjectData.BuildDist)
 
 	// Save the project type
 	options.ProjectData.OutputType = options.OutputType
@@ -228,15 +231,27 @@ func GenerateBindings(buildOptions *Options) error {
 	if buildOptions.ProjectData.Bindings.TsGeneration.OutputType == "" {
 		buildOptions.ProjectData.Bindings.TsGeneration.OutputType = "classes"
 	}
-
+	if buildOptions.ProjectData.Bindings.GoPackPath == "" {
+		buildOptions.ProjectData.Bindings.GoPackPath = buildOptions.ProjectData.GoPackPath
+	}
+	if buildOptions.ProjectData.Bindings.ProjectDirectory == "" {
+		buildOptions.ProjectData.Bindings.ProjectDirectory = buildOptions.ProjectData.Path
+	}
+	if buildOptions.ProjectData.Bindings.BinaryDirectory == "" {
+		buildOptions.ProjectData.Bindings.BinaryDirectory = filepath.Join(buildOptions.ProjectData.GetOutputDir(), "bin")
+	}
 	// Generate Bindings
 	output, err := bindings.GenerateBindings(bindings.Options{
-		Compiler:     buildOptions.Compiler,
-		Tags:         buildOptions.UserTags,
-		GoModTidy:    !buildOptions.SkipModTidy,
-		TsPrefix:     buildOptions.ProjectData.Bindings.TsGeneration.Prefix,
-		TsSuffix:     buildOptions.ProjectData.Bindings.TsGeneration.Suffix,
-		TsOutputType: buildOptions.ProjectData.Bindings.TsGeneration.OutputType,
+		Compiler:         buildOptions.Compiler,
+		GoModTidy:        !buildOptions.SkipModTidy,
+		Tags:             buildOptions.UserTags,
+		BinRunArgs:       buildOptions.ProjectData.Bindings.BinRunArgs,
+		BinaryDirectory:  buildOptions.ProjectData.GetDir(buildOptions.ProjectData.Bindings.BinaryDirectory),
+		ProjectDirectory: buildOptions.ProjectData.GetDir(buildOptions.ProjectData.Bindings.ProjectDirectory),
+		GoPackPath:       buildOptions.ProjectData.Bindings.GoPackPath,
+		TsPrefix:         buildOptions.ProjectData.Bindings.TsGeneration.Prefix,
+		TsSuffix:         buildOptions.ProjectData.Bindings.TsGeneration.Suffix,
+		TsOutputType:     buildOptions.ProjectData.Bindings.TsGeneration.OutputType,
 	})
 	if err != nil {
 		return err

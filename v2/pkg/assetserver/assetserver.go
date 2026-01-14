@@ -245,7 +245,7 @@ func (d *AssetServer) logError(message string, args ...interface{}) {
 	}
 }
 
-func (AssetServer) isRuntimeInjectionMatch(path string) bool {
+func (d *AssetServer) isRuntimeInjectionMatch(path string) bool {
 	if path == "" {
 		path = "/"
 	}
