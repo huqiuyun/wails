@@ -37,13 +37,12 @@ export function SetInjects(injectsObject) {
 	Object.keys(injectsObject).forEach((injectName) => {
 
 		// Create inner map if it doesn't exist
-		window['${injectName}'] = window['${injectName}'] || {};
-		let inject = window['${injectName}']
+		window[injectName] = window[injectName] || {};
 
 		// Iterate struct names
 		Object.keys(injectsObject[injectName]).forEach((methodName) => {
 
-			inject[methodName] = function () {
+			window[injectName][methodName] = function () {
 
 				const method = injectsObject[injectName][methodName]
 

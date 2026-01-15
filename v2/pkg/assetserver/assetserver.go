@@ -82,7 +82,7 @@ func NewAssetServerWithHandler(handler http.Handler, inject Inject, bindingsJSON
 
 		obj := inject.ObjectList()
 		for _, objName := range obj {
-			buffer.WriteString(`window.` + objName + `= {};` + "\n")
+			buffer.WriteString(`window.` + objName + "= {};\n")
 		}
 	}
 	buffer.Write(runtime.RuntimeDesktopJS())
