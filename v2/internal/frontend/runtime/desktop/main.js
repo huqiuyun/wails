@@ -21,6 +21,7 @@ import {
 } from "./events";
 import { Call, Callback, callbacks } from './calls';
 import { SetBindings } from "./bindings";
+import { SetInjects } from "./injects"
 import * as Window from "./window";
 import * as Screen from "./screen";
 import * as Browser from "./browser";
@@ -69,6 +70,7 @@ window.wails = {
     Callback,
     EventsNotify,
     SetBindings,
+    SetInjects,
     eventListeners,
     callbacks,
     flags: {
@@ -93,9 +95,15 @@ if (window.wailsbindings) {
     delete window.wails.SetBindings;
 }
 
+if (window.wailsinject) {
+    window.wails.SetInjects(window.wailsinject);
+    delete window.wails.SetInjects;
+}
+
 // (bool) This is evaluated at build time in package.json
 if (!DEBUG) {
     delete window.wailsbindings;
+    delete window.wailsinject;
 }
 
 let dragTest = function(e) {

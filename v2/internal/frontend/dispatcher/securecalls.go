@@ -23,7 +23,7 @@ func (d *Dispatcher) processSecureCallMessage(message string, sender frontend.Fr
 	var result interface{}
 
 	// Lookup method
-	registeredMethod := d.bindingsDB.GetObfuscatedMethod(payload.ID)
+	registeredMethod := d.bindingDB.GetObfuscatedMethod(payload.ID)
 
 	// Check we have it
 	if registeredMethod == nil {

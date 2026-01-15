@@ -72,7 +72,8 @@ func CreateApp(appoptions *options.App) (*App, error) {
 		appoptions.OnDomReady,
 		appoptions.OnBeforeClose,
 	}
-	appBindings := binding.NewBindings(myLogger, appoptions.Bind, bindingExemptions, IsObfuscated(), appoptions.EnumBind)
+	bindingDB := binding.NewDB()
+	_ = binding.NewBindings(bindingDB, myLogger, appoptions.Bind, bindingExemptions, IsObfuscated(), appoptions.EnumBind)
 	eventHandler := runtime.NewEvents(myLogger)
 	ctx = context.WithValue(ctx, "events", eventHandler)
 	// Attach logger to context
@@ -82,8 +83,8 @@ func CreateApp(appoptions *options.App) (*App, error) {
 		ctx = context.WithValue(ctx, "buildtype", "production")
 	}
 
-	messageDispatcher := dispatcher.NewDispatcher(ctx, myLogger, appBindings, eventHandler, appoptions.ErrorFormatter, appoptions.DisablePanicRecovery)
-	appFrontend := desktop.NewFrontend(ctx, appoptions, myLogger, appBindings, messageDispatcher)
+	messageDispatcher := dispatcher.NewDispatcher(ctx, myLogger, bindingDB, eventHandler, appoptions.ErrorFormatter, appoptions.DisablePanicRecovery)
+	appFrontend := desktop.NewFrontend(ctx, appoptions, myLogger, bindingDB, messageDispatcher)
 	eventHandler.AddFrontend(appFrontend)
 
 	ctx = context.WithValue(ctx, "frontend", appFrontend)

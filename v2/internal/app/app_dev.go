@@ -219,15 +219,16 @@ func CreateApp(appoptions *options.App) (*App, error) {
 		appoptions.OnDomReady,
 		appoptions.OnBeforeClose,
 	}
-	appBindings := binding.NewBindings(myLogger, appoptions.Bind, bindingExemptions, false, appoptions.EnumBind)
+	bindingDB = binding.NewDB()
+	_ = binding.NewBindings(bindingDB, myLogger, appoptions.Bind, bindingExemptions, false, appoptions.EnumBind)
 
 	eventHandler := runtime.NewEvents(myLogger)
 	ctx = context.WithValue(ctx, "events", eventHandler)
-	messageDispatcher := dispatcher.NewDispatcher(ctx, myLogger, appBindings, eventHandler, appoptions.ErrorFormatter, appoptions.DisablePanicRecovery)
+	messageDispatcher := dispatcher.NewDispatcher(ctx, myLogger, bindingDB, eventHandler, appoptions.ErrorFormatter, appoptions.DisablePanicRecovery)
 
 	// Create the frontends and register to event handler
-	desktopFrontend := desktop.NewFrontend(ctx, appoptions, myLogger, appBindings, messageDispatcher)
-	appFrontend := devserver.NewFrontend(ctx, appoptions, myLogger, appBindings, messageDispatcher, menuManager, desktopFrontend)
+	desktopFrontend := desktop.NewFrontend(ctx, appoptions, myLogger, bindingDB, messageDispatcher)
+	appFrontend := devserver.NewFrontend(ctx, appoptions, myLogger, bindingDB, messageDispatcher, menuManager, desktopFrontend)
 	eventHandler.AddFrontend(appFrontend)
 	eventHandler.AddFrontend(desktopFrontend)
 

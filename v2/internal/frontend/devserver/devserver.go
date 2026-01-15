@@ -42,7 +42,7 @@ type DevWebServer struct {
 	ctx              context.Context
 	appoptions       *options.App
 	logger           *logger.Logger
-	appBindings      *binding.Bindings
+	bindingDB        *binding.DB
 	dispatcher       frontend.Dispatcher
 	socketMutex      sync.Mutex
 	websocketClients map[*websocket.Conn]*sync.Mutex
@@ -98,7 +98,7 @@ func (d *DevWebServer) Run(ctx context.Context) error {
 	}
 
 	// Setup internal dev server
-	bindingsJSON, err := d.appBindings.ToJSON()
+	bindingsJSON, err := d.bindingDB.ToJSON()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -299,13 +299,13 @@ func (d *DevWebServer) notifyExcludingSender(eventMessage []byte, sender *websoc
 	d.Frontend.Notify(notifyMessage.Name, notifyMessage.Data...)
 }
 
-func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.Logger, appBindings *binding.Bindings, dispatcher frontend.Dispatcher, menuManager *menumanager.Manager, desktopFrontend frontend.Frontend) *DevWebServer {
+func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.Logger, bindingDB *binding.DB, dispatcher frontend.Dispatcher, menuManager *menumanager.Manager, desktopFrontend frontend.Frontend) *DevWebServer {
 	result := &DevWebServer{
 		ctx:              ctx,
 		Frontend:         desktopFrontend,
 		appoptions:       appoptions,
 		logger:           myLogger,
-		appBindings:      appBindings,
+		bindingDB:        bindingDB,
 		dispatcher:       dispatcher,
 		server:           echo.New(),
 		menuManager:      menuManager,

@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/wailsapp/wails/v2/internal/binding"
 	"github.com/wailsapp/wails/v2/internal/frontend"
@@ -11,21 +12,21 @@ import (
 )
 
 type Dispatcher struct {
-	log                  *logger.Logger
-	bindings             *binding.Bindings
+	log *logger.Logger
+	//bindings             *binding.Bindings
 	events               frontend.Events
-	bindingsDB           *binding.DB
+	bindingDB            *binding.DB
 	ctx                  context.Context
 	errfmt               options.ErrorFormatter
 	disablePanicRecovery bool
 }
 
-func NewDispatcher(ctx context.Context, log *logger.Logger, bindings *binding.Bindings, events frontend.Events, errfmt options.ErrorFormatter, disablePanicRecovery bool) *Dispatcher {
+func NewDispatcher(ctx context.Context, log *logger.Logger, bindingDB *binding.DB, events frontend.Events, errfmt options.ErrorFormatter, disablePanicRecovery bool) *Dispatcher {
 	return &Dispatcher{
-		log:                  log,
-		bindings:             bindings,
+		log: log,
+		//bindings:             bindings,
 		events:               events,
-		bindingsDB:           bindings.DB(),
+		bindingDB:            bindingDB,
 		ctx:                  ctx,
 		errfmt:               errfmt,
 		disablePanicRecovery: disablePanicRecovery,

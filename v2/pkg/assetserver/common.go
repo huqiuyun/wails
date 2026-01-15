@@ -14,21 +14,21 @@ import (
 )
 
 func BuildAssetServerConfig(appOptions *options.App) (assetserver.Options, error) {
-	var options assetserver.Options
+	var assetOptions assetserver.Options
 	if opt := appOptions.AssetServer; opt != nil {
 		if appOptions.Assets != nil || appOptions.AssetsHandler != nil {
 			panic("It's not possible to use the deprecated Assets and AssetsHandler options and the new AssetServer option at the same time. Please migrate all your Assets options to the AssetServer option.")
 		}
 
-		options = *opt
+		assetOptions = *opt
 	} else {
-		options = assetserver.Options{
+		assetOptions = assetserver.Options{
 			Assets:  appOptions.Assets,
 			Handler: appOptions.AssetsHandler,
 		}
 	}
 
-	return options, options.Validate()
+	return assetOptions, assetOptions.Validate()
 }
 
 const (

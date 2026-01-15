@@ -53,7 +53,9 @@ type App struct {
 	// Deprecated: Use AssetServer.Handler instead.
 	AssetsHandler http.Handler
 	// AssetServer configures the Assets for the application
-	AssetServer        *assetserver.Options
+	AssetServer *assetserver.Options
+	// 注入的对像， assetserver.Inject
+	AssetInject        any
 	Menu               *menu.Menu
 	Logger             logger.Logger `json:"-"`
 	LogLevel           logger.LogLevel

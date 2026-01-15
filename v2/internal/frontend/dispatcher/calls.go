@@ -29,7 +29,7 @@ func (d *Dispatcher) processCallMessage(message string, sender frontend.Frontend
 		result, err = d.processSystemCall(payload, sender)
 	default:
 		// Lookup method
-		registeredMethod := d.bindingsDB.GetMethod(payload.Name)
+		registeredMethod := d.bindingDB.GetMethod(payload.Name)
 
 		// Check we have it
 		if registeredMethod == nil {

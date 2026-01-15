@@ -27,7 +27,7 @@ type ObfuscatedMethod struct {
 	methodName string
 }
 
-func newDB() *DB {
+func NewDB() *DB {
 	return &DB{
 		store:                 make(map[string]map[string]map[string]*BoundMethod),
 		methodMap:             make(map[string]*BoundMethod),

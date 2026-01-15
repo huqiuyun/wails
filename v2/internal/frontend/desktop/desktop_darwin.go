@@ -15,6 +15,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 )
 
-func NewFrontend(ctx context.Context, appoptions *options.App, logger *logger.Logger, appBindings *binding.Bindings, dispatcher frontend.Dispatcher) frontend.Frontend {
-	return darwin.NewFrontend(ctx, appoptions, logger, appBindings, dispatcher)
+func NewFrontend(ctx context.Context, appoptions *options.App, logger *logger.Logger, bindingDB *binding.DB, dispatcher frontend.Dispatcher) frontend.Frontend {
+	return darwin.NewFrontend(ctx, appoptions, logger, bindingDB, dispatcher)
 }

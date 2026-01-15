@@ -32,9 +32,9 @@ type Bindings struct {
 }
 
 // NewBindings returns a new Bindings object
-func NewBindings(logger *logger.Logger, structPointersToBind []interface{}, exemptions []interface{}, obfuscate bool, enumsToBind []interface{}) *Bindings {
+func NewBindings(db *DB, logger *logger.Logger, structPointersToBind []interface{}, exemptions []interface{}, obfuscate bool, enumsToBind []interface{}) *Bindings {
 	result := &Bindings{
-		db:                  newDB(),
+		db:                  db,
 		logger:              logger.CustomLogger("Bindings"),
 		structsToGenerateTS: make(map[string]map[string]interface{}),
 		enumsToGenerateTS:   make(map[string]map[string]interface{}),

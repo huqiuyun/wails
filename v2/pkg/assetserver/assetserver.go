@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"golang.org/x/net/html"
 	"html/template"
+
+	"golang.org/x/net/html"
 
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -55,24 +56,34 @@ func NewAssetServerMainPage(bindingsJSON string, options *options.App, servingFr
 	if err != nil {
 		return nil, err
 	}
-	return NewAssetServer(bindingsJSON, assetOptions, servingFromDisk, logger, runtime)
+	var inject, _ = InjectCase(options.AssetInject)
+	return NewAssetServer(bindingsJSON, inject, assetOptions, servingFromDisk, logger, runtime)
 }
 
-func NewAssetServer(bindingsJSON string, options assetserver.Options, servingFromDisk bool, logger Logger, runtime RuntimeAssets) (*AssetServer, error) {
+func NewAssetServer(bindingsJSON string, inject Inject, options assetserver.Options, servingFromDisk bool, logger Logger, runtime RuntimeAssets) (*AssetServer, error) {
 	handler, err := NewAssetHandler(options, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewAssetServerWithHandler(handler, bindingsJSON, servingFromDisk, logger, runtime)
+	return NewAssetServerWithHandler(handler, inject, bindingsJSON, servingFromDisk, logger, runtime)
 }
 
-func NewAssetServerWithHandler(handler http.Handler, bindingsJSON string, servingFromDisk bool, logger Logger, runtime RuntimeAssets) (*AssetServer, error) {
+func NewAssetServerWithHandler(handler http.Handler, inject Inject, bindingsJSON string, servingFromDisk bool, logger Logger, runtime RuntimeAssets) (*AssetServer, error) {
 
 	var buffer bytes.Buffer
 	if bindingsJSON != "" {
 		escapedBindingsJSON := template.JSEscapeString(bindingsJSON)
 		buffer.WriteString(`window.wailsbindings='` + escapedBindingsJSON + `';` + "\n")
+	}
+	if inject != nil {
+		escapedInjectJSON := template.JSEscapeString(inject.ToJSON())
+		buffer.WriteString(`window.wailsinject='` + escapedInjectJSON + `';` + "\n")
+
+		obj := inject.ObjectList()
+		for _, objName := range obj {
+			buffer.WriteString(`window.` + objName + `= {};` + "\n")
+		}
 	}
 	buffer.Write(runtime.RuntimeDesktopJS())
 

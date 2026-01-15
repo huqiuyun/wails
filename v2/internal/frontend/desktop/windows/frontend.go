@@ -60,7 +60,7 @@ type Frontend struct {
 
 	// main window handle
 	mainWindow *Window
-	bindings   *binding.Bindings
+	bindings   *binding.DB
 	dispatcher frontend.Dispatcher
 
 	hasStarted bool
@@ -72,7 +72,7 @@ type Frontend struct {
 	resizeDebouncer func(f func())
 }
 
-func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.Logger, appBindings *binding.Bindings, dispatcher frontend.Dispatcher) *Frontend {
+func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.Logger, bindingDB *binding.DB, dispatcher frontend.Dispatcher) *Frontend {
 
 	// Get Windows build number
 	versionInfo, _ := operatingsystem.GetWindowsVersionInfo()
@@ -87,7 +87,7 @@ func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.
 	result := &Frontend{
 		frontendOptions: appoptions,
 		logger:          myLogger,
-		bindings:        appBindings,
+		bindings:        bindingDB,
 		dispatcher:      dispatcher,
 		ctx:             ctx,
 		versionInfo:     versionInfo,
@@ -117,12 +117,12 @@ func NewFrontend(ctx context.Context, appoptions *options.App, myLogger *logger.
 	var bindings string
 	var err error
 	if _obfuscated, _ := ctx.Value("obfuscated").(bool); !_obfuscated {
-		bindings, err = appBindings.ToJSON()
+		bindings, err = bindingDB.ToJSON()
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		appBindings.DB().UpdateObfuscatedCallMap()
+		bindingDB.UpdateObfuscatedCallMap()
 	}
 
 	assets, err := assetserver.NewAssetServerMainPage(bindings, appoptions, ctx.Value("assetdir") != nil, myLogger, wailsruntime.RuntimeAssetsBundle)
