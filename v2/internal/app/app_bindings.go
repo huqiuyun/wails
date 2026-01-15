@@ -58,7 +58,7 @@ func (a *App) Run() error {
 	if tsOutputTypeFlag != nil {
 		tsOutputType = *tsOutputTypeFlag
 	}
-	bindingDB = binding.NewDB()
+	bindingDB := binding.NewDB()
 	appBindings := binding.NewBindings(bindingDB, a.logger, a.options.Bind, bindingExemptions, IsObfuscated(), a.options.EnumBind)
 
 	appBindings.SetTsPrefix(tsPrefix)

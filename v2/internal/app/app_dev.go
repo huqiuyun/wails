@@ -219,7 +219,7 @@ func CreateApp(appoptions *options.App) (*App, error) {
 		appoptions.OnDomReady,
 		appoptions.OnBeforeClose,
 	}
-	bindingDB = binding.NewDB()
+	bindingDB := binding.NewDB()
 	_ = binding.NewBindings(bindingDB, myLogger, appoptions.Bind, bindingExemptions, false, appoptions.EnumBind)
 
 	eventHandler := runtime.NewEvents(myLogger)
