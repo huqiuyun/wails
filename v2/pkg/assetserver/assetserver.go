@@ -135,6 +135,8 @@ func (d *AssetServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	path := req.URL.Path
+
+	d.logDebug("wails asset server, path= %s", path)
 	if path == runtimeJSPath {
 		d.writeBlob(rw, path, d.runtimeJS)
 	} else if path == runtimePath && d.runtimeHandler != nil {
